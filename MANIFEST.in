@@ -1,0 +1,11 @@
+# references:
+#   https://python-packaging.readthedocs.io/en/latest/non-code-files.html
+#   https://www.reddit.com/r/Python/comments/40s8qw/simplify_your_manifestin_commands/
+#   https://docs.python.org/3/distutils/commandref.html
+
+
+include README.rst
+include LICENSE
+include dia_analyze/reference_files/*
+
+global-exclude *.zip
