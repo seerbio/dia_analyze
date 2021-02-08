@@ -1,6 +1,3 @@
-__author__ = 'Seymour Data Science'
-
-
 import os.path
 from pathlib import Path
 
@@ -15,7 +12,7 @@ from crozes_base.helpers import helper_functions, pandas_helpers
 from crozes_base.io import boiler_plates
 from crozes_base.stats import plotting, stat_methods
 
-from seer_swath_analyze import modifications, quant
+from dia_analyze import modifications, quant
 
 
 """
@@ -43,16 +40,16 @@ automatically. This is done in the method categorize_input(), which has lots of 
 
 
 
-class SwathData(object):
+class DiaData(object):
     """
-    A SWATH data object - can be a library (lacking quant data) or a results set (containing quant data on samples).
+    A DIA data object - can be a library (lacking quant data) or a results set (containing quant data on samples).
 
     """
 
 
-    def __init__(self, swath_input, **kwargs):
+    def __init__(self, dia_input, **kwargs):
         """
-        Create a new SwathData class instance.
+        Create a new DiaData class instance.
 
         :param input: A file path or pandas dataframe.
         :param: kwarg: in_delim: delimiter in input file, if filepath passed rather than dataframe.
@@ -143,25 +140,25 @@ class SwathData(object):
         # Get dataframe(s)
 
         # if input is a string, assume it's a file path
-        if type(swath_input) == str:
+        if type(dia_input) == str:
 
             # if ends in .fcresult, is a Sciex OneOmics 'fold change' results zip file
-            if swath_input.endswith('.fcresult') is True:
-                self.read_one_omics_fcresult(swath_input)
+            if dia_input.endswith('.fcresult') is True:
+                self.read_one_omics_fcresult(dia_input)
 
             # otherwise assume is a single text file and read to a pandas dataframe
             else:
-                self.read_input(swath_input, delimiter=in_delim)
+                self.read_input(dia_input, delimiter=in_delim)
 
             if self.name_stem is None:
-                self.name_stem = Path(swath_input).stem
+                self.name_stem = Path(dia_input).stem
 
-        elif type(swath_input) == pd.DataFrame:
+        elif type(dia_input) == pd.DataFrame:
             # todo - this usage path untested and unclear if needed.
-            self.df = swath_input
-            self.name_stem = 'swath_data_from_pkl'
+            self.df = dia_input
+            self.name_stem = 'dia_data_from_pkl'
         else:
-            print('FATAL ERROR! Input to SwathData class must be a pandas dataframe or a file path')
+            print('FATAL ERROR! Input to DiaData class must be a pandas dataframe or a file path')
             quit()
 
         if self.verbose > 0:
@@ -184,7 +181,7 @@ class SwathData(object):
         # ---------------------------------
         # Convert format
 
-        self.describe(title='Describe: Initial SWATH data input before conversion')
+        self.describe(title='Describe: Initial DIA data input before conversion')
         self.convert_format()
         self.describe(title='Describe: Immediately after conversion')
 
@@ -207,7 +204,7 @@ class SwathData(object):
 
         """
 
-        title = kwargs.get('title', 'Describe SWATH Data: ' + str(self.name_stem))
+        title = kwargs.get('title', 'Describe DIA Data: ' + str(self.name_stem))
 
         if self.verbose > 0:
             boiler_plates.section_header(title=title, level=1)
@@ -415,7 +412,7 @@ class SwathData(object):
         if self.outpath is None:
             print('FATAL ERROR: An outpath argument is required when reading OneOmics .fcresult zips')
             print('             since a temp folder must be created to unzip the results.')
-            print('             Pass an outpath argument when instantiating SwathData class.')
+            print('             Pass an outpath argument when instantiating DiaData class.')
             results_folder = None
             quit()
         else:
@@ -574,7 +571,7 @@ class SwathData(object):
             elif 'Protein' in cols or 'uniprot_id' in cols:
                 self.dialect = 'sciex'
 
-                # Get level of PeakView SWATH export data
+                # Get level of PeakView DIA export data
                 if 'Fragment MZ' in cols or 'Q3' in cols:
                     self.level = 'transition'
                     # count columns w 'area' in them
@@ -679,21 +676,21 @@ class SwathData(object):
 
         # validations
         if self.lib_or_results == 'results' and output_format != 'std':
-            print('ERROR! SwathData class currently only supports conversion of results to "std" format.')
+            print('ERROR! DiaData class currently only supports conversion of results to "std" format.')
             quit()
         elif self.lib_or_results == 'library' and output_format != 'skyline':
-            print('ERROR! SwathData class currently only supports conversion of libraries to "skyline" format.')
+            print('ERROR! DiaData class currently only supports conversion of libraries to "skyline" format.')
             quit()
 
         if self.dialect == 'std':
-            print('ERROR! SwathData class currently does not support results input already in std format.')
-            print('       Uses cases starting from std format should probably be built on pkl SwathData class input.')
+            print('ERROR! DiaData class currently does not support results input already in std format.')
+            print('       Uses cases starting from std format should probably be built on pkl DiaData class input.')
             quit()
 
 
         # check that conversion has not already been called (can only convert once to be safe at this point)
         if self.converted is True:
-            print('ERROR! SwathData class currently only supports calling convert_format method once.')
+            print('ERROR! DiaData class currently only supports calling convert_format method once.')
             quit()
 
         """
@@ -759,7 +756,7 @@ class SwathData(object):
                  'Is Decoy': {'new_name': 'decoy'}
                  },
 
-            'sciex to std':     # refers to desktop SWATH PeakView plugin
+            'sciex to std':     # refers to desktop DIA PeakView plugin
                 {'Protein': {'new_name': 'protein'},
                  #'<not offered>': {'new_name': 'sequence'},    # todo - need to derive this from seq_w_mods for IDs!
                  'Peptide':
@@ -1452,7 +1449,7 @@ class SwathData(object):
         if self.dialect not in data_array_mapping_dict:
             map_dict = {}
             print('FATAL ERROR! No column content mapping dict for dialect:', self.dialect)
-            print('             in SwathData method get_sample_columns().')
+            print('             in DiaData method get_sample_columns().')
             quit()
 
         else:
@@ -1597,7 +1594,7 @@ class SwathData(object):
                         print()
                         print('If you are seeing this error, a likely source is inclusion of blank runs.')
                         print('You can easily ignore blank runs using -xsamp arg from cmd line or passing a list to')
-                        print('the kwarg "exclude_sample_strings" when instantiating the SwathData class.')
+                        print('the kwarg "exclude_sample_strings" when instantiating the DiaData class.')
                         print("For example, if the word 'blank' is the file name for all blanks, pass ['blank']")
                         print('or cmd arg -xsamp "blank".')
                         print()
@@ -1862,7 +1859,7 @@ class SwathData(object):
 
 
 
-    def filter_swath_decoys(self):
+    def filter_dia_decoys(self):
         """
         This method removes rows that are SWATH decoys (not decoy proteins!) from standard results.
 
@@ -1890,10 +1887,10 @@ class SwathData(object):
 
 
         # get counts after filtering
-        self.count_analytes('filter swath decoy rows')
+        self.count_analytes('filter dia decoy rows')
 
 
-        self.tracker.capture('filter swath decoy rows')
+        self.tracker.capture('filter dia decoy rows')
 
         return
 
@@ -1960,7 +1957,7 @@ class SwathData(object):
 
     def profile(self):
 
-        self.tracker.report(title='Timing Profile for SwathData Class', verbose=self.verbose)
+        self.tracker.report(title='Timing Profile for DiaData Class', verbose=self.verbose)
 
         return
 
@@ -3083,12 +3080,12 @@ class SwathData(object):
         Logic on normalization already present in data controlled by ignore_provided_norm:
         If the sample norm method is called, it's assumed you want to normalized the data. However, if you also pass
         ignore_provided_norm = False, then if the input data was normalized or provided a normalized form (OneOmics
-        provides both norm'd and un-norm'd selected upon instantiation of SwathData class), normalization will NOT
+        provides both norm'd and un-norm'd selected upon instantiation of DiaData class), normalization will NOT
         be triggered here if we can both tell the input data was normalized AND you prefer to use that norm if
         present by passing ignore_provided_norm = False.
 
         If you want it to normalize no matter what calling this method, then no need to pass anything as
-        ignore_provided_norm is assumed True by default if you call this method. However, upon import to SwathData
+        ignore_provided_norm is assumed True by default if you call this method. However, upon import to DiaData
         class, it is NOT assumed True.
 
         :param kwargs:
@@ -3535,7 +3532,7 @@ class SwathData(object):
 
     def append(self, sw2):
         """
-        This method takes another instance of SwathData and merges it into this instance to allow aggregation.
+        This method takes another instance of DiaData and merges it into this instance to allow aggregation.
         """
 
         # todo - write append method
